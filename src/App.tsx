@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { useState, FormEvent } from "react";
 import { motion } from "motion/react";
 import { 
   Calendar, 
@@ -22,12 +23,45 @@ import {
   Globe, 
   MapPin,
   CheckCircle2,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 
 export default function App() {
+  const [result, setResult] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setResult(null);
+
+    const formData = new FormData(event.currentTarget);
+    formData.append("access_key", "023c5a62-2373-4469-9fda-0387e7639f6d");
+
+    try {
+      const response = await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setResult("Success! We'll contact you soon.");
+        (event.target as HTMLFormElement).reset();
+      } else {
+        setResult("Error! Please try again later.");
+      }
+    } catch (error) {
+      setResult("Error! Something went wrong.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -297,26 +331,62 @@ export default function App() {
             
             <div className="bg-slate-50 rounded-[2.5rem] p-8 md:p-12 border border-slate-100">
               <h3 className="text-2xl font-bold text-slate-900 mb-6">Quick Registration</h3>
-              <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+              <form className="space-y-4" onSubmit={onSubmit}>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Full Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all" placeholder="Enter your name" />
+                  <input 
+                    type="text" 
+                    name="name"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all" 
+                    placeholder="Enter your name" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number</label>
-                  <input type="tel" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all" placeholder="Enter your number" />
+                  <input 
+                    type="tel" 
+                    name="phone"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all" 
+                    placeholder="Enter your number" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1">Interested In</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white">
+                  <select 
+                    name="interest"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none transition-all bg-white"
+                  >
                     <option>Digital Marketing Course</option>
                     <option>SMM Mastery</option>
                     <option>Content Creation</option>
                   </select>
                 </div>
-                <button className="w-full py-4 bg-orange-600 text-white rounded-xl font-bold text-lg hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 mt-4">
-                  Send Inquiry
+                <button 
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-4 bg-orange-600 text-white rounded-xl font-bold text-lg hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 mt-4 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Inquiry"
+                  )}
                 </button>
+                
+                {result && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`text-center font-semibold mt-4 ${result.includes("Success") ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {result}
+                  </motion.p>
+                )}
               </form>
             </div>
           </div>
