@@ -4,7 +4,7 @@
  */
 
 import { useState, FormEvent } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   Calendar, 
   Clock, 
@@ -24,12 +24,14 @@ import {
   MapPin,
   CheckCircle2,
   ArrowRight,
-  Loader2
+  Loader2,
+  MessageCircle
 } from "lucide-react";
 
 export default function App() {
   const [result, setResult] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showWhatsappTooltip, setShowWhatsappTooltip] = useState(false);
 
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
@@ -409,6 +411,34 @@ export default function App() {
           Register Now
           <ArrowRight className="w-5 h-5" />
         </button>
+      </div>
+
+      {/* WhatsApp Sticky Button */}
+      <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-3">
+        <AnimatePresence>
+          {showWhatsappTooltip && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20, scale: 0.8 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: 20, scale: 0.8 }}
+              className="bg-white px-4 py-2 rounded-xl shadow-xl border border-slate-100 text-sm font-bold text-slate-900 whitespace-nowrap"
+            >
+              Chat with us! 👋
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <motion.a 
+          href="https://wa.me/916232778223?text=Hi, I'm interested in the Digital Marketing Course!"
+          target="_blank"
+          rel="noopener noreferrer"
+          onMouseEnter={() => setShowWhatsappTooltip(true)}
+          onMouseLeave={() => setShowWhatsappTooltip(false)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="w-16 h-16 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl shadow-green-200 cursor-pointer group"
+        >
+          <MessageCircle className="w-8 h-8 fill-white group-hover:rotate-12 transition-transform" />
+        </motion.a>
       </div>
     </div>
   );
